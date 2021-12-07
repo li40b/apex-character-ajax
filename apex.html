@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>APEXレジェンド紹介</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  
+<style>
+
+header {
+    font-family: Impact;
+    text-align: center;
+}
+button{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+.item{
+    display: flex;
+    width: 850px;
+    margin: 20px auto;
+    border: 1px solid #717375;
+    align-items: center;
+}
+.img {
+    padding: 20px;
+  }
+.totleArea{
+    text-align: center;
+}
+</style>
+
+</head>
+<body>
+    <header>
+        <h1>APEXレジェンド</h1>
+        <h2>レジェンド紹介</h2>
+        <h3>合計18件</h3>
+    </header>
+    <div id="loadarea"></div>
+    <div id="totleArea" class="totleArea"></div>
+<script>
+$(function(){
+    const setArea = $('#loadarea'),
+          loadNum = 2, //最初に表示する数
+          defaultNum = 2, //読み込んで表示する数
+          btnTxt  = '読み込む';
+
+    setArea.after('<button id="button">' + btnTxt + '</div>');//読み込みボタン
+    const setMore = setArea.next('#button');//読み込みボタン
+
+    //最初に表示する記事
+    $.ajax({
+        url: './json/apex.json',
+        dataType: 'json',
+        success : function(data){
+            const dataArray = data.character,
+                  dataLengh = dataArray.length,
+                  loadItemLength = setArea.find('.item').length;
+                    function createView(countMax, countBeg){
+                        for (let i=0; i<countMax; i++) {
+                            count = i;
+                            if(countBeg){
+                                count = i+countBeg;
+                            }
+                            $(setArea).append("<div class=\"item\">" +
+                                              "<a href=\"" + dataArray[count].url +"\" >" + 
+                                              "<img src=\"" + dataArray[count].image + "\" class=\"img\">" + "</a>" +
+                                              "<div class=\"text\">"+
+                                              "<h1>" + dataArray[count].name + "</h1>" + 
+                                              "<p>" +dataArray[count].detail + "</p>" +
+                                              "</div>"+ 
+                                              "</div>");
+                        }
+                        }
+                        if(dataLengh != loadItemLength){
+                            if(loadItemLength == 0){
+                                if(dataLengh <= defaultNum){
+                                    createView(dataLengh);
+                                } else {
+                                    createView(defaultNum);                            
+                                }
+                            } 
+                        }
+                        $('#totleArea').text(defaultNum + "/" + dataLengh + "件表示中")
+        },//最初に表示する記事に発生するエラー
+        error: function(){
+            $(setArea).append("<p>記事の読み込みに失敗しました<p>");
+                setMore.hide()
+        }
+    });                         
+    //読み込むを押して表示させる記事
+    setMore.click(function(){
+        $.ajax({
+            url: './json/apex.json',
+            dataType: 'json',
+            success : function(data){
+                const dataArray = data.character,
+                        dataLengh = dataArray.length,
+                        loadItemLength = setArea.find('.item').length,
+                        setAdj = (dataLengh)-(loadItemLength),
+                        setBeg = (dataLengh)-(setAdj),
+                        totle = loadItemLength + defaultNum;
+                let count = 0;
+                function createView(countMax, countBeg){
+                    for (let i=0; i<countMax; i++) {
+                        count = i;
+                        if(countBeg){
+                            count = i+countBeg;
+                        }
+                        $(setArea).append("<div class=\"item\">" +
+                                            "<a href=\"" + dataArray[count].url +"\" >" + 
+                                            "<img src=\"" + dataArray[count].image + "\" class=\"img\">" + "</a>" +
+                                            "<div class=\"text\">"+
+                                            "<h1>" + dataArray[count].name + "</h1>" + 
+                                            "<p>" +dataArray[count].detail + "</p>" +
+                                            "</div>"+ 
+                                            "</div>");
+                    }
+                }
+                if(loadItemLength > 0 && loadItemLength < dataLengh){
+                    if(loadNum < setAdj){    
+                        createView(loadNum, setBeg);  
+                    } else if(loadNum >= setAdj){
+                        createView(setAdj, setBeg);
+                    }                                                    
+                } if (totle == dataLengh){
+                    setMore.hide();
+                }
+                $('#totleArea').text(totle + "/" + dataLengh + "件表示中");
+            },//読み込みボタンを押したときに発生するエラー
+            error: function(){
+                alert("データの読み込みに失敗しました");
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>
